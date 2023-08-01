@@ -4,7 +4,6 @@ import (
 	"fmt"
 	cond "github.com/vela-ssoc/vela-cond"
 	"github.com/vela-ssoc/vela-kit/lua"
-	"github.com/vela-ssoc/vela-kit/opcode"
 	"github.com/vela-ssoc/vela-kit/pipe"
 	"gopkg.in/tomb.v2"
 	"sync/atomic"
@@ -17,9 +16,9 @@ type snapshot struct {
 	err      error
 	bkt      []string
 	data     []Account
-	onCreate *pipe.Px
-	onDelete *pipe.Px
-	onUpdate *pipe.Px
+	onCreate *pipe.Chains
+	onDelete *pipe.Chains
+	onUpdate *pipe.Chains
 
 	co      *lua.LState
 	tomb    *tomb.Tomb
@@ -180,6 +179,7 @@ func (snap *snapshot) sync() {
 	snap.Create(bkt)
 	snap.Update(bkt)
 	snap.Delete(bkt)
-	xEnv.TnlSend(opcode.OpAccountFull, snap.data)
+	xEnv.Push("/api/v1/broker/collect/agent/account/full", snap.data)
+	//xEnv.TnlSend(opcode.OpAccountFull, snap.data)
 	snap.reset()
 }
